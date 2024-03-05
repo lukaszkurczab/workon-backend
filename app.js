@@ -1,14 +1,15 @@
 const express = require('express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-var createError = require('http-errors');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const cosmosConfig = require('./cosmosConfig');
+const createError = require('http-errors');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-var indexRouter = require('./routes/index');
+const exercisesRouter = require('./routes/exercises');
 
-var app = express();
+const app = express();
 
 const options = {
   definition: {
@@ -18,11 +19,11 @@ const options = {
       version: '1.0.0',
     },
   },
-  apis: ['./routes/*.js'], // Ścieżka do plików z definicją Swaggera
+  apis: ['./routes/*.js'],
 };
 
 const specs = swaggerJsdoc(options);
-app.use('', swaggerUi.serve, swaggerUi.setup(specs));
+//app.use('/', swaggerUi.serve, swaggerUi.setup(specs));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -34,7 +35,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/exercises', exercisesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
