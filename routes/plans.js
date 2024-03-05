@@ -2,17 +2,18 @@ const express = require('express');
 const router = express.Router();
 const cosmosConfigModule = require('../cosmosConfig');
 
-const queryExercises = async () => {
-  const c = await cosmosConfigModule.getExercisesContainer();
+const queryPlans = async () => {
+  const c = await cosmosConfigModule.getPlansContainer();
   const {resources} = await c.items.readAll().fetchAll();
   return resources;
 }
 
 router.get('/', async (req, res, next) => {
   try{
-    const items = await queryExercises();
+    const items = await queryPlans();
     res.send(items);
   } catch(err) {
+    console.log(err.message)
     res.status(500).send(err.message);
   }
 });
