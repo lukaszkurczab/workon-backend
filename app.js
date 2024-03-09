@@ -1,6 +1,4 @@
 const express = require('express');
-const swaggerJsdoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
 const createError = require('http-errors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -23,9 +21,6 @@ const options = {
   },
   apis: ['./routes/*.js'],
 };
-
-const specs = swaggerJsdoc(options);
-//app.use('/', swaggerUi.serve, swaggerUi.setup(specs));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
