@@ -12,7 +12,7 @@ pool:
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '10.x'
+    versionSpec: '20.x'
   displayName: 'Install Node.js'
 
 - script: |
@@ -20,4 +20,35 @@ steps:
     npm run build
   displayName: 'npm install and build'
 
+- task: CopyFiles@2
+  inputs:
+    Contents: 'package*.json'
+    TargetFolder: 'dist'
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'dist'
+    customCommand: 'ci --production'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: 'dist'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: 'dist.zip'
+    replaceExistingArchive: true
+
 - task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'dist.zip'
+    publishLocation: 'Container'
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'connection'
+    appType: 'webAppLinux'
+    appName: 'workon-backend'
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    runtimeStack: 'NODE|20-lts'
+    startUpCommand: 'pm2 start dist/main.js --no-daemon'
