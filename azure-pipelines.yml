@@ -43,12 +43,3 @@ steps:
   inputs:
     PathtoPublish: 'dist.zip'
     publishLocation: 'Container'
-
-- task: AzureWebApp@1
-  inputs:
-    azureSubscription: 'connection'
-    appType: 'webAppLinux'
-    appName: 'workon-backend'
-    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
-    runtimeStack: 'NODE|20-lts'
-    startUpCommand: 'pm2 start dist/main.js --no-daemon'
