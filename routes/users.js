@@ -1,4 +1,5 @@
 const express = require('express');
+const flatted = require('flatted');
 const router = express.Router();
 const cosmosConfigModule = require('../cosmosConfig');
 
@@ -11,7 +12,7 @@ const queryUsers = async () => {
 const getUser= async (userId) => {
   const container = await cosmosConfigModule.getUsersContainer();
   const user = await container.item(userId).read();
-  return user;
+  return flatted.stringify(user);
 }
 
 const addHistoryItemToUsers = async (userId, historyItemId) => {
