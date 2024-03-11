@@ -1,5 +1,4 @@
 const express = require('express');
-const flatted = require('flatted');
 const router = express.Router();
 const cosmosConfigModule = require('../cosmosConfig');
 
@@ -9,10 +8,10 @@ const queryUsers = async () => {
   return resources;
 }
 
-const getUser= async (userId) => {
+const getUser = async (userId) => {
   const container = await cosmosConfigModule.getUsersContainer();
-  const user = await container.item(userId).read();
-  return flatted.stringify(user);
+  const response = await container.item(userId, 'test@example.com').read();
+  return response.resource;
 }
 
 const addHistoryItemToUsers = async (userId, historyItemId) => {
@@ -38,12 +37,11 @@ router.get('/', async (req, res, next) => {
 });
 
 router.get('/:id', async (req, res, next) => {
-  try {
-    const userId = req.params.id;
-    const user = await getUser(userId);
-    res.send(user);
-  } catch (err) {
-    console.log(err.message);
+  try{
+    const items = await getUser(req.params.id);
+    res.send(items);
+  } catch(err) {
+    console.log(err.message)
     res.status(500).send(err.message);
   }
 });
