@@ -8,9 +8,9 @@ const queryUsers = async () => {
   return resources;
 }
 
-const getUser = async (userId) => {
+const getUser= async (userId) => {
   const container = await cosmosConfigModule.getUsersContainer();
-  const user = await container.item(userId);
+  const user = await container.item(userId).read();
   return user;
 }
 
@@ -36,16 +36,17 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-
 router.get('/:id', async (req, res, next) => {
-  try{
-    const user = await getUser(req.params.id);
+  try {
+    const userId = req.params.id;
+    const user = await getUser(userId);
     res.send(user);
-  } catch(err) {
-    console.log(err.message)
+  } catch (err) {
+    console.log(err.message);
     res.status(500).send(err.message);
   }
 });
+
 router.put('/history/:id', async (req, res, next) => {
   try {
     const userId = req.params.id;
