@@ -3,7 +3,13 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const cosmosConfigModule = require('../cosmosConfig');
 
-const queryExercises = async version => {
+const queryExercises = async () => {
+  const container = await cosmosConfigModule.getExercisesContainer();
+  const { resources } = await container.items.readAll().fetchAll();
+  return resources;
+};
+
+const getExercises = async version => {
   const container = await cosmosConfigModule.getExercisesContainer();
   const querySpec = {
     query: 'SELECT * FROM c WHERE c.version = @version',
@@ -40,7 +46,7 @@ const deleteExercise = async exerciseId => {
 
 router.get('/', async (req, res, next) => {
   try {
-    const items = await queryExercises(req.body.version);
+    const items = await queryExercises();
     res.send(items);
   } catch (err) {
     res.status(500).send(err.message);
@@ -48,6 +54,15 @@ router.get('/', async (req, res, next) => {
 });
 
 router.post('/', async (req, res, next) => {
+  try {
+    const items = await getExercises(req.body.version);
+    res.send(items);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+router.post('/add', async (req, res, next) => {
   try {
     const newExercise = req.body;
     const addedExercise = await addExercise(newExercise);
