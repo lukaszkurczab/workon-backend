@@ -3,37 +3,46 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const cosmosConfigModule = require('../cosmosConfig');
 
-const queryExercises = async () => {
+const queryExercises = async version => {
   const container = await cosmosConfigModule.getExercisesContainer();
-  const {resources} = await container.items.readAll().fetchAll();
+  const querySpec = {
+    query: 'SELECT * FROM c WHERE c.version = @version',
+    parameters: [
+      {
+        name: '@version',
+        value: version,
+      },
+    ],
+  };
+  const { resources } = await container.items.query(querySpec).fetchAll();
   return resources;
-}
+};
 
-const addExercise = async (newExercise) => {
+const addExercise = async newExercise => {
   const container = await cosmosConfigModule.getExercisesContainer();
-  const id = uuidv4(); 
-  const exerciseToAdd = { ...newExercise, id }; 
+  const id = uuidv4();
+  const exerciseToAdd = { ...newExercise, id };
   await container.items.create(exerciseToAdd);
   return exerciseToAdd;
-}
+};
 
 const updateExercise = async (exerciseId, updatedExercise) => {
   const container = await cosmosConfigModule.getExercisesContainer();
   await container.item(exerciseId).replace(updatedExercise);
   return updatedExercise;
-}
+};
 
-const deleteExercise = async (exerciseId) => {
+const deleteExercise = async exerciseId => {
   const container = await cosmosConfigModule.getExercisesContainer();
   await container.item(exerciseId).delete();
   return exerciseId;
-}
+};
 
 router.get('/', async (req, res, next) => {
-  try{
-    const items = await queryExercises();
+  try {
+    const items = await queryExercises(req.body.version);
     res.send(items);
-  } catch(err) {
+  } catch (err) {
     res.status(500).send(err.message);
   }
 });
