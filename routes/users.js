@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cosmosConfigModule = require('../cosmosConfig');
+const { v4: uuidv4 } = require('uuid');
 
 const queryUsers = async () => {
   const container = await cosmosConfigModule.getUsersContainer();
@@ -17,7 +18,7 @@ const getUser = async userId => {
 const addHistoryItemToUsers = async (userId, historyItem) => {
   const container = await cosmosConfigModule.getUsersContainer();
   const user = await container.item(userId, 'test@example.com').read();
-  const operation = [{ op: 'add', path: '/history', value: [...user.resource.history, historyItem] }];
+  const operation = [{ op: 'add', path: '/history', value: [...user.resource.history, { id: uuidv4(), ...historyItem }] }];
   await container.item(userId, 'test@example.com').patch(operation);
   return historyItem;
 };
