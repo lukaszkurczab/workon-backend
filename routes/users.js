@@ -20,13 +20,24 @@ const addHistoryItemToUsers = async (userId, historyItem) => {
   const user = await container.item(userId, 'test@example.com').read();
   const operation = [{ op: 'add', path: '/history', value: [...user.resource.history, { id: uuidv4(), ...historyItem }] }];
   await container.item(userId, 'test@example.com').patch(operation);
-  return historyItem;
+  return [...user.resource.history, { id: uuidv4(), ...historyItem }];
 };
 
-const addPlanToUsers = async (userId, planId) => {
+const addPlanToUser = async (userId, plan) => {
   const container = await cosmosConfigModule.getUsersContainer();
-  await container.item(userId).plans.push({ id: planId });
-  return container.item(userId).plans;
+  const user = await container.item(userId, 'test@example.com').read();
+  const operation = [{ op: 'add', path: '/plans', value: [...user.resource.plans, { id: uuidv4(), ...plan }] }];
+  await container.item(userId, 'test@example.com').patch(operation);
+  return [...user.resource.plans, { id: uuidv4(), ...plan }];
+};
+
+const removePlanFromUser = async (userId, planId) => {
+  const container = await cosmosConfigModule.getUsersContainer();
+  const user = await container.item(userId, 'test@example.com').read();
+  const newPlans = user.resource.plans.filter(plan => plan.id != planId);
+  const operation = [{ op: 'set', path: '/plans', value: newPlans }];
+  await container.item(userId, 'test@example.com').patch(operation);
+  return newPlans;
 };
 
 router.get('/', async (req, res, next) => {
@@ -63,8 +74,19 @@ router.put('/history/:id', async (req, res, next) => {
 router.put('/plans/:id', async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const planId = req.body;
-    const updatedUserPlansInDb = await addPlanToUsers(userId, planId);
+    const plan = req.body;
+    const updatedUserPlansInDb = await addPlanToUser(userId, plan);
+    res.send(updatedUserPlansInDb);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+router.delete('/plans/:id', async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const planId = req.body.id;
+    const updatedUserPlansInDb = await removePlanFromUser(userId, planId);
     res.send(updatedUserPlansInDb);
   } catch (err) {
     res.status(500).send(err.message);
