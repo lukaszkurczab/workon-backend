@@ -35,9 +35,9 @@ const editUserPlan = async (userId, plan) => {
   const container = await cosmosConfigModule.getUsersContainer();
   const user = await container.item(userId, 'test@example.com').read();
   const filteredPlans = user.resource.plans.filter(item => item.id != plan.id);
-  const operation = [{ op: 'add', path: '/plans', value: [...filteredPlans, { ...plan }] }];
+  const operation = [{ op: 'add', path: '/plans', value: [...filteredPlans, plan] }];
   await container.item(userId, 'test@example.com').patch(operation);
-  return [...filteredPlans, { ...plan }];
+  return [...filteredPlans, plan];
 };
 
 const removePlanFromUser = async (userId, planId) => {
