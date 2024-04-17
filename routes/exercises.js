@@ -44,6 +44,26 @@ const deleteExercise = async exerciseId => {
   return exerciseId;
 };
 
+const addExercise = async (newExercise) => {
+  const container = await cosmosConfigModule.getExercisesContainer();
+  const id = uuidv4(); 
+  const exerciseToAdd = { ...newExercise, id }; 
+  await container.items.create(exerciseToAdd);
+  return exerciseToAdd;
+}
+
+const updateExercise = async (exerciseId, updatedExercise) => {
+  const container = await cosmosConfigModule.getExercisesContainer();
+  await container.item(exerciseId).replace(updatedExercise);
+  return updatedExercise;
+}
+
+const deleteExercise = async (exerciseId) => {
+  const container = await cosmosConfigModule.getExercisesContainer();
+  await container.item(exerciseId).delete();
+  return exerciseId;
+}
+
 router.get('/', async (req, res, next) => {
   try {
     const items = await queryExercises();
@@ -93,4 +113,39 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
+<<<<<<< HEAD
 module.exports = router;
+=======
+router.post('/', async (req, res, next) => {
+  try {
+    const newExercise = req.body;
+    const addedExercise = await addExercise(newExercise);
+    res.send(addedExercise);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+router.put('/:id', async (req, res, next) => {
+  try {
+    const exerciseId = req.params.id;
+    const updatedExercise = req.body;
+    const updatedExerciseInDb = await updateExercise(exerciseId, updatedExercise);
+    res.send(updatedExerciseInDb);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const exerciseId = req.params.id;
+    await deleteExercise(exerciseId);
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+module.exports = router;
+>>>>>>> e05f502e6a54d0e4db05c3d9cc60bd1d0e9a2694
