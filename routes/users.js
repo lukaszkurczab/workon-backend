@@ -49,18 +49,6 @@ const removePlanFromUser = async (userId, planId) => {
   return newPlans;
 };
 
-const addHistoryItemToUsers = async (userId, historyItemId) => {
-  const container = await cosmosConfigModule.getUsersContainer();
-  await container.item(userId).history.push({id: historyItemId});
-  return container.item(userId).history;
-}
-
-const addPlanToUsers = async (userId, planId) => {
-  const container = await cosmosConfigModule.getUsersContainer();
-  await container.item(userId).plans.push({id: planId});
-  return container.item(userId).plans;
-}
-
 router.get('/', async (req, res, next) => {
   try {
     const items = await queryUsers();
@@ -125,30 +113,4 @@ router.delete('/plans/:id', async (req, res, next) => {
   }
 });
 
-<<<<<<< HEAD
 module.exports = router;
-=======
-router.put('/history/:id', async (req, res, next) => {
-  try {
-    const userId = req.params.id;
-    const historyItemId = req.body;
-    const updatedUserHistoryItemsInDb = await addHistoryItemToUsers(userId, historyItemId);
-    res.send(updatedUserHistoryItemsInDb);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-router.put('/plans/:id', async (req, res, next) => {
-  try {
-    const userId = req.params.id;
-    const planId = req.body;
-    const updatedUserPlansInDb = await addPlanToUsers(userId, planId);
-    res.send(updatedUserPlansInDb);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
-
-module.exports = router;
->>>>>>> e05f502e6a54d0e4db05c3d9cc60bd1d0e9a2694
