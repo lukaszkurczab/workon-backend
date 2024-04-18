@@ -49,6 +49,12 @@ const removePlanFromUser = async (userId, planId) => {
   return newPlans;
 };
 
+const updateUserPassword = async (userId, newPassword) => {
+  const container = await cosmosConfigModule.getUsersContainer();
+  const operation = [{ op: 'set', path: '/password', value: newPassword }];
+  await container.item(userId, 'test@example.com').patch(operation);
+};
+
 router.get('/', async (req, res, next) => {
   try {
     const items = await queryUsers();
@@ -108,6 +114,17 @@ router.delete('/plans/:id', async (req, res, next) => {
     const planId = req.body.id;
     const updatedUserPlansInDb = await removePlanFromUser(userId, planId);
     res.send(updatedUserPlansInDb);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+router.put('/:id/password', async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const newPassword = req.body.password;
+    await updateUserPassword(userId, newPassword);
+    res.send('Password updated');
   } catch (err) {
     res.status(500).send(err.message);
   }
