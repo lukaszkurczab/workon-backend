@@ -1,7 +1,21 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const cosmosConfigModule = require('../cosmosConfig');
+const secretKey = 'your_secret_key';
 const { v4: uuidv4 } = require('uuid');
+
+const addUser = async (email, hashedPassword) => {
+  const c = await cosmosConfigModule.getUsersContainer();
+  const newUser = {
+    email,
+    password: hashedPassword,
+    createdAt: new Date(),
+  };
+  await c.items.create(newUser);
+  return newUser;
+};
 
 const queryUsers = async () => {
   const container = await cosmosConfigModule.getUsersContainer();
@@ -9,10 +23,14 @@ const queryUsers = async () => {
   return resources;
 };
 
-const getUser = async userId => {
-  const container = await cosmosConfigModule.getUsersContainer();
-  const response = await container.item(userId, 'test@example.com').read();
-  return response.resource;
+const getUserByUsername = async email => {
+  const c = await cosmosConfigModule.getUsersContainer();
+  const querySpec = {
+    query: 'SELECT * FROM c WHERE c.email = @email',
+    parameters: [{ name: '@email', value: email }],
+  };
+  const { resources } = await c.items.query(querySpec).fetchAll();
+  return resources[0];
 };
 
 const addHistoryItemToUsers = async (userId, historyItem) => {
@@ -65,16 +83,6 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/:id', async (req, res, next) => {
-  try {
-    const items = await getUser(req.params.id);
-    res.send(items);
-  } catch (err) {
-    console.log(err.message);
-    res.status(500).send(err.message);
-  }
-});
-
 router.put('/history/:id', async (req, res, next) => {
   try {
     const userId = req.params.id;
@@ -93,6 +101,42 @@ router.post('/plans/:id', async (req, res, next) => {
     const updatedUserPlansInDb = await addPlanToUser(userId, plan);
     res.send(updatedUserPlansInDb);
   } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await getUserByUsername(email);
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '1h' });
+      res.json({ token });
+    } else {
+      res.status(401).send('Unauthorized');
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+router.post('/register', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const existingUser = await getUserByUsername(email);
+    if (existingUser) {
+      return res.status(409).send('User already exists');
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const newUser = await addUser(email, hashedPassword);
+    res.status(201).send({ userId: newUser.id, email: newUser.email });
+  } catch (err) {
+    console.log(err.message);
     res.status(500).send(err.message);
   }
 });
