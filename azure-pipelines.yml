@@ -16,3 +16,9 @@ steps:
       echo Budowanie aplikacji...
       npm run build
     displayName: 'Build'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'myArtifact'
+      publishLocation: 'container'
