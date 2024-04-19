@@ -17,6 +17,16 @@ steps:
       npm run build
     displayName: 'Build'
 
+  - script: |
+      echo Sprawdzanie obecności pliku dist.zip...
+      if [ -f "dist.zip" ]; then
+        echo Plik dist.zip istnieje.
+      else
+        echo Plik dist.zip nie istnieje, sprawdź proces budowania.
+        exit 1
+      fi
+    displayName: 'Check if dist.zip exists'
+
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: 'dist.zip'
