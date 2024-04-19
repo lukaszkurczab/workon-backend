@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@azure/cosmos": "^4.0.0",
+    "aws-sdk": "^2.1602.0",
     "bcrypt": "^5.1.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
@@ -15,10 +16,13 @@
     "express": "^4.18.3",
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^9.0.2",
+    "mock-aws-s3": "^4.0.2",
     "morgan": "~1.9.1",
+    "nock": "^13.5.4",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "html-loader": "^5.0.0",
     "webpack": "^5.90.3",
     "webpack-cli": "^5.1.4"
   }
