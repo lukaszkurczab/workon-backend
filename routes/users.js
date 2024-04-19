@@ -23,7 +23,7 @@ const queryUsers = async () => {
   return resources;
 };
 
-const getUserByUsername = async email => {
+const getUserByEmail = async email => {
   const c = await cosmosConfigModule.getUsersContainer();
   const querySpec = {
     query: 'SELECT * FROM c WHERE c.email = @email',
@@ -108,10 +108,19 @@ router.post('/plans/:id', async (req, res, next) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await getUserByUsername(email);
+    const user = await getUserByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '1h' });
-      res.json({ token });
+      res.json({
+        id: user.id,
+        email: user.email,
+        history: user.history,
+        plans: user.plans,
+        username: user.username,
+        password: user.password,
+        bio: user.bio,
+        token: token,
+      });
     } else {
       res.status(401).send('Unauthorized');
     }
@@ -125,7 +134,7 @@ router.post('/register', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const existingUser = await getUserByUsername(email);
+    const existingUser = await getUserByEmail(email);
     if (existingUser) {
       return res.status(409).send('User already exists');
     }
