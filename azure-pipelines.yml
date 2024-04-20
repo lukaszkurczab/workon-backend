@@ -28,9 +28,9 @@ stages:
 
           - script: |
               npm install
-              npm run build --if-present
-              npm run test --if-present
-            displayName: 'npm install, build, and test'
+              npm ci
+              npm run build
+            displayName: 'npm install and build'
 
           - task: CopyFiles@2
             inputs:
@@ -47,17 +47,17 @@ stages:
 
           - task: ArchiveFiles@2
             inputs:
-              rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
+              rootFolderOrFile: 'dist'
               includeRootFolder: false
               archiveType: 'zip'
-              archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+              archiveFile: 'dist.zip'
               replaceExistingArchive: true
             displayName: 'Archive files'
 
           - task: PublishBuildArtifacts@1
             inputs:
-              PathtoPublish: 'dist.zip'
-              ArtifactName: 'WorkOn-backend Artifact'
+              PathtoPublish: dist.zip
+              ArtifactName: WorkOn-backend Artifact
               publishLocation: 'Container'
 
   - stage: Deploy
@@ -80,6 +80,6 @@ stages:
                     appType: webAppLinux
                     appName: $(webAppName)
                     runtimeStack: 'NODE|20-lts'
-                    package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+                    package: $(System.DefaultWorkingDirectory)/**/*.zip
                     startUpCommand: 'npm run start'
                   displayName: 'Azure Web App Deploy'
