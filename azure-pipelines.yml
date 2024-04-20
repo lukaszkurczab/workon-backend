@@ -68,6 +68,5 @@ stages:
                     startUpCommand: 'npm run start'
                   displayName: 'Azure Web App Deploy'
                 - script: |
-                  cp $(Pipeline.Workspace)/drop/package.json /home/site/wwwroot/package.json
-                displayName: 'Copy package.json to wwwroot'
-
+                    cp $(Pipeline.Workspace)/drop/package.json /home/site/wwwroot/package.json
+                  displayName: 'Copy package.json to wwwroot'
