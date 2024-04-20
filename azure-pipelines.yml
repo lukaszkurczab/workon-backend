@@ -52,38 +52,37 @@ stages:
               PathtoPublish: dist.zip
               ArtifactName: WorkOn-backend Artifact
               publishLocation: 'Container'
+  - stage: Deploy
+    displayName: 'Deploy stage'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: Deploy
+        displayName: 'Deploy'
+        environment: $(environmentName)
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@0
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'WorkOn-backend Artifact'
+                    downloadPath: '$(System.ArtifactsDirectory)'
 
-- stage: Deploy
-  displayName: 'Deploy stage'
-  dependsOn: Build
-  condition: succeeded()
-  jobs:
-    - deployment: Deploy
-      displayName: 'Deploy'
-      environment: $(environmentName)
-      pool:
-        vmImage: 'ubuntu-latest'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - task: DownloadBuildArtifacts@0
-                inputs:
-                  buildType: 'current'
-                  downloadType: 'single'
-                  artifactName: 'WorkOn-backend Artifact'
-                  downloadPath: '$(System.ArtifactsDirectory)'
+                - script: |
+                    ls -l $(System.ArtifactsDirectory)
+                  displayName: 'List downloaded artifacts'
 
-              - script: |
-                  ls -l $(System.ArtifactsDirectory)
-                displayName: 'List downloaded artifacts'
-
-              - task: AzureWebApp@1
-                inputs:
-                  azureSubscription: $(azureSubscription)
-                  appType: webAppLinux
-                  appName: $(webAppName)
-                  runtimeStack: 'NODE|20-lts'
-                  package: $(System.ArtifactsDirectory)/**/*.zip
-                  startUpCommand: 'npm run start'
-                displayName: 'Azure Web App Deploy'
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    appType: webAppLinux
+                    appName: $(webAppName)
+                    runtimeStack: 'NODE|20-lts'
+                    package: $(System.ArtifactsDirectory)/**/*.zip
+                    startUpCommand: 'npm run start'
+                  displayName: 'Azure Web App Deploy'
