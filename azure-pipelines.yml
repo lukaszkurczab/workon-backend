@@ -6,6 +6,12 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  appName: 'workon-backend'
+  subscriptionName: 'WorkOn'
+  resourceGroupName: 'workon-resource-group'
+  location: 'West Europe'
+
 steps:
   - script: |
       echo Instalowanie zależności...
@@ -22,7 +28,27 @@ steps:
       npm run build
     displayName: 'Build'
 
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/dist.zip'
+      replaceExistingArchive: true
+    displayName: 'Archive files'
+
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: 'dist/dist.zip'
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/dist.zip'
+      ArtifactName: 'drop'
       publishLocation: 'Container'
+    displayName: 'Publish Artifact'
+
+  - task: AzureWebApp@1
+    inputs:
+      azureSubscription: '$(subscriptionName)'
+      appName: '$(appName)'
+      appType: 'webAppLinux'
+      runtimeStack: 'NODE|14-lts'
+      package: '$(Build.ArtifactStagingDirectory)/dist.zip'
+    displayName: 'Deploy to Azure App Service'
