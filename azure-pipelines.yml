@@ -4,15 +4,12 @@ trigger:
       - develop
 
 pool:
-  vmImage: 'ubuntu-latest' # Wcześniej było $(vmImage), ale brakowało definicji zmiennej.
+  vmImage: 'ubuntu-latest'
 
 variables:
-  # Azure Resource Manager connection
   azureSubscription: '1c9b1cea-b27a-4a48-80ed-545acc9d1ea5'
-
-  # Web app name and environment details
   webAppName: 'workon-backend'
-  environmentName: 'production' # assuming you are deploying to a production environment
+  environmentName: 'production'
 
 stages:
   - stage: Build
@@ -26,7 +23,7 @@ stages:
         steps:
           - task: NodeTool@0
             inputs:
-              versionSpec: '14.x' # Updated to use a newer Node.js version
+              versionSpec: '20.x'
             displayName: 'Install Node.js'
 
           - script: |
@@ -37,7 +34,7 @@ stages:
 
           - task: ArchiveFiles@2
             inputs:
-              rootFolderOrFile: '$(Build.SourcesDirectory)/dist' # Ensure this points to your build output directory
+              rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
               includeRootFolder: false
               archiveType: 'zip'
               archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
@@ -66,7 +63,7 @@ stages:
                     azureSubscription: $(azureSubscription)
                     appType: webAppLinux
                     appName: $(webAppName)
-                    runtimeStack: 'NODE|14-lts' # Updated runtime stack to match installed Node.js version
+                    runtimeStack: 'NODE|20-lts'
                     package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
                     startUpCommand: 'npm run start'
                   displayName: 'Azure Web App Deploy'
