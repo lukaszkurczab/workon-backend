@@ -28,7 +28,6 @@ stages:
 
           - script: |
               npm install
-              npm ci
               npm run build
             displayName: 'npm install and build'
 
@@ -38,12 +37,6 @@ stages:
               Contents: 'package.json'
               TargetFolder: '$(Build.SourcesDirectory)/dist'
             displayName: 'Copy package.json to dist folder'
-
-          - task: Npm@1
-            inputs:
-              command: 'custom'
-              workingDir: 'dist'
-              customCommand: 'ci --production'
 
           - task: ArchiveFiles@2
             inputs:
