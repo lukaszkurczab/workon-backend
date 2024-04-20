@@ -39,6 +39,12 @@ stages:
               TargetFolder: '$(Build.SourcesDirectory)/dist'
             displayName: 'Copy package.json to dist folder'
 
+          - task: Npm@1
+            inputs:
+              command: 'custom'
+              workingDir: 'dist'
+              customCommand: 'ci --production'
+
           - task: ArchiveFiles@2
             inputs:
               rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
@@ -48,8 +54,11 @@ stages:
               replaceExistingArchive: true
             displayName: 'Archive files'
 
-          - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-            artifact: drop
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: 'dist.zip'
+              ArtifactName: 'WorkOn-backend Artifact'
+              publishLocation: 'Container'
 
   - stage: Deploy
     displayName: 'Deploy stage'
