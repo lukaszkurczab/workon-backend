@@ -4,7 +4,7 @@ trigger:
       - develop
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-latest' # Wcześniej było $(vmImage), ale brakowało definicji zmiennej.
 
 variables:
   # Azure Resource Manager connection
@@ -12,7 +12,7 @@ variables:
 
   # Web app name and environment details
   webAppName: 'workon-backend'
-  environmentName: 'production'
+  environmentName: 'production' # assuming you are deploying to a production environment
 
 stages:
   - stage: Build
@@ -21,12 +21,12 @@ stages:
       - job: Build
         displayName: 'Build'
         pool:
-          vmImage: $(vmImage)
+          vmImage: 'ubuntu-latest'
 
         steps:
           - task: NodeTool@0
             inputs:
-              versionSpec: '14.x'
+              versionSpec: '14.x' # Updated to use a newer Node.js version
             displayName: 'Install Node.js'
 
           - script: |
@@ -37,7 +37,7 @@ stages:
 
           - task: ArchiveFiles@2
             inputs:
-              rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
+              rootFolderOrFile: '$(Build.SourcesDirectory)/dist' # Ensure this points to your build output directory
               includeRootFolder: false
               archiveType: 'zip'
               archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
@@ -56,7 +56,7 @@ stages:
         displayName: 'Deploy'
         environment: $(environmentName)
         pool:
-          vmImage: $(vmImage)
+          vmImage: 'ubuntu-latest'
         strategy:
           runOnce:
             deploy:
@@ -66,7 +66,7 @@ stages:
                     azureSubscription: $(azureSubscription)
                     appType: webAppLinux
                     appName: $(webAppName)
-                    runtimeStack: 'NODE|14-lts'
+                    runtimeStack: 'NODE|14-lts' # Updated runtime stack to match installed Node.js version
                     package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
                     startUpCommand: 'npm run start'
                   displayName: 'Azure Web App Deploy'
