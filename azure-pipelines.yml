@@ -7,48 +7,66 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  appName: 'workon-backend'
-  subscriptionName: 'WorkOn'
-  resourceGroupName: 'workon-resource-group'
-  location: 'West Europe'
+  # Azure Resource Manager connection
+  azureSubscription: '1c9b1cea-b27a-4a48-80ed-545acc9d1ea5'
 
-steps:
-  - script: |
-      echo Instalowanie zależności...
-      npm install
-    displayName: 'Install dependencies'
+  # Web app name and environment details
+  webAppName: 'workon-backend'
+  environmentName: 'production'
 
-  - script: |
-      echo Instalowanie zip...
-      sudo apt-get install zip
-    displayName: 'Install zip'
+stages:
+  - stage: Build
+    displayName: 'Build stage'
+    jobs:
+      - job: Build
+        displayName: 'Build'
+        pool:
+          vmImage: $(vmImage)
 
-  - script: |
-      echo Budowanie aplikacji...
-      npm run build
-    displayName: 'Build'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '14.x'
+            displayName: 'Install Node.js'
 
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
-      includeRootFolder: false
-      archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/dist.zip'
-      replaceExistingArchive: true
-    displayName: 'Archive files'
+          - script: |
+              npm install
+              npm run build --if-present
+              npm run test --if-present
+            displayName: 'npm install, build, and test'
 
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)/dist.zip'
-      ArtifactName: 'drop'
-      publishLocation: 'Container'
-    displayName: 'Publish Artifact'
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+              replaceExistingArchive: true
+            displayName: 'Archive files'
 
-  - task: AzureWebApp@1
-    inputs:
-      azureSubscription: '$(subscriptionName)'
-      appName: '$(appName)'
-      appType: 'webAppLinux'
-      runtimeStack: 'NODE|14-lts'
-      package: '$(Build.ArtifactStagingDirectory)/dist.zip'
-    displayName: 'Deploy to Azure App Service'
+          - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+            artifact: drop
+
+  - stage: Deploy
+    displayName: 'Deploy stage'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: Deploy
+        displayName: 'Deploy'
+        environment: $(environmentName)
+        pool:
+          vmImage: $(vmImage)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    appType: webAppLinux
+                    appName: $(webAppName)
+                    runtimeStack: 'NODE|14-lts'
+                    package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+                    startUpCommand: 'npm run start'
+                  displayName: 'Azure Web App Deploy'
