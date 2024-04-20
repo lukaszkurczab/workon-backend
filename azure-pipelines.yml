@@ -32,6 +32,13 @@ stages:
               npm run test --if-present
             displayName: 'npm install, build, and test'
 
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)'
+              Contents: 'package.json'
+              TargetFolder: '$(Build.SourcesDirectory)/dist'
+            displayName: 'Copy package.json to dist folder'
+
           - task: ArchiveFiles@2
             inputs:
               rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
@@ -67,6 +74,3 @@ stages:
                     package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
                     startUpCommand: 'npm run start'
                   displayName: 'Azure Web App Deploy'
-                - script: |
-                    cp $(Pipeline.Workspace)/drop/package.json /home/site/wwwroot/package.json
-                  displayName: 'Copy package.json to wwwroot'
