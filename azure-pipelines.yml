@@ -33,6 +33,6 @@ stages:
 
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: $(azureSubscription
+              azureSubscription: $(azureSubscription)
               appName: $(webAppName)
               package: '$(Build.ArtifactStagingDirectory)/'
