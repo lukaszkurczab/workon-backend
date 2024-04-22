@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const historyService = require('../../services/historyService');
+const historyServices = require('../../services/history/historyServices');
 
 const handleServiceResponse = (res, { result, error }, successStatusCode = 200) => {
   if (error) {
@@ -11,19 +11,19 @@ const handleServiceResponse = (res, { result, error }, successStatusCode = 200) 
 };
 
 router.get('/', async (req, res) => {
-  const serviceResponse = await historyService.queryHistory();
+  const serviceResponse = await historyServices.queryHistory();
   handleServiceResponse(res, serviceResponse);
 });
 
 router.post('/', async (req, res) => {
   const newHistoryItem = req.body;
-  const serviceResponse = await historyService.createHistoryItem(newHistoryItem);
+  const serviceResponse = await historyServices.createHistoryItem(newHistoryItem);
   handleServiceResponse(res, serviceResponse, 201);
 });
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const serviceResponse = await historyService.deleteHistoryItem(id);
+  const serviceResponse = await historyServices.deleteHistoryItem(id);
   handleServiceResponse(res, serviceResponse, 204);
 });
 

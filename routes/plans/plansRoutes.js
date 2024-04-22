@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const plansService = require('../../services/plansService');
+const plansServices = require('../../services/plans/plansServices');
 
 const handleServiceResponse = (res, { result, error }, successStatusCode = 200) => {
   if (error) {
@@ -11,26 +11,26 @@ const handleServiceResponse = (res, { result, error }, successStatusCode = 200) 
 };
 
 router.get('/', async (req, res) => {
-  const serviceResponse = await plansService.queryPlans();
+  const serviceResponse = await plansServices.queryPlans();
   handleServiceResponse(res, serviceResponse);
 });
 
 router.post('/', async (req, res) => {
   const newPlan = req.body;
-  const serviceResponse = await plansService.addPlan(newPlan);
+  const serviceResponse = await plansServices.addPlan(newPlan);
   handleServiceResponse(res, serviceResponse, 201);
 });
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updatedPlan = req.body;
-  const serviceResponse = await plansService.updatePlan(id, updatedPlan);
+  const serviceResponse = await plansServices.updatePlan(id, updatedPlan);
   handleServiceResponse(res, serviceResponse);
 });
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const serviceResponse = await plansService.deletePlan(id);
+  const serviceResponse = await plansServices.deletePlan(id);
   handleServiceResponse(res, serviceResponse, 204);
 });
 

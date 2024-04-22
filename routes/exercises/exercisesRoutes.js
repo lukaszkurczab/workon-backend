@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const exerciseService = require('../../services/exerciseService');
+const exercisesServices = require('../../services/exercises/exercisesServices');
 
 const handleServiceResponse = (res, { result, error }, successStatusCode = 200) => {
   if (error) {
@@ -11,32 +11,32 @@ const handleServiceResponse = (res, { result, error }, successStatusCode = 200) 
 };
 
 router.get('/', async res => {
-  const serviceResponse = await exerciseService.queryExercises();
+  const serviceResponse = await exercisesServices.queryExercises();
   handleServiceResponse(res, serviceResponse);
 });
 
 router.get('/:version', async (req, res) => {
   const { version } = req.params;
-  const serviceResponse = await exerciseService.getExercisesByVersion(version);
+  const serviceResponse = await exercisesServices.getExercisesByVersion(version);
   handleServiceResponse(res, serviceResponse);
 });
 
 router.post('/', async (req, res) => {
   const newExercise = req.body;
-  const serviceResponse = await exerciseService.addExercise(newExercise);
+  const serviceResponse = await exercisesServices.addExercise(newExercise);
   handleServiceResponse(res, serviceResponse, 201);
 });
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updatedExercise = req.body;
-  const serviceResponse = await exerciseService.updateExercise(id, updatedExercise);
+  const serviceResponse = await exercisesServices.updateExercise(id, updatedExercise);
   handleServiceResponse(res, serviceResponse);
 });
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const serviceResponse = await exerciseService.deleteExercise(id);
+  const serviceResponse = await exercisesServices.deleteExercise(id);
   handleServiceResponse(res, serviceResponse, 204);
 });
 
