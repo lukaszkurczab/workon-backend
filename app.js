@@ -8,7 +8,6 @@ const exercisesRouter = require('./routes/exercises');
 const historyRouter = require('./routes/history');
 const plansRouter = require('./routes/plans');
 const usersRouter = require('./routes/users');
-var indexRouter = require('./routes/index');
 
 const app = express();
 
@@ -33,7 +32,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
 app.use('/exercises', exercisesRouter);
 app.use('/history', historyRouter);
 app.use('/plans', plansRouter);
