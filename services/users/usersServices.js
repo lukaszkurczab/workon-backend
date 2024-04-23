@@ -30,7 +30,7 @@ const getUserById = async userId => {
 const addUser = async (email, hashedPassword) => {
   return safelyPerformDatabaseOperation(async () => {
     const existingUser = await getUserByEmail(email);
-    if (existingUser) {
+    if (existingUser.result != null) {
       throw new Error('User already exists with that email');
     }
 
