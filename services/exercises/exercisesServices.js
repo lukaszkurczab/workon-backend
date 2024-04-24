@@ -35,6 +35,7 @@ const getExercisesByVersion = async version => {
       parameters: [{ name: '@version', value: version }],
     };
     const { resources } = await container.items.query(querySpec).fetchAll();
+    console.log(resources);
     return resources;
   };
   return safelyPerformDatabaseOperation(operation);

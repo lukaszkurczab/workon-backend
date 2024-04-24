@@ -17,7 +17,7 @@ router.get('/', async res => {
 
 router.get('/:version', async (req, res) => {
   const { version } = req.params;
-  const serviceResponse = await exercisesServices.getExercisesByVersion(version);
+  const serviceResponse = await exercisesServices.getExercises(version);
   handleServiceResponse(res, serviceResponse);
 });
 
