@@ -54,10 +54,10 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { name, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  const serviceResponse = await usersServices.addUser(email, hashedPassword);
+  const serviceResponse = await usersServices.addUser(name, email, hashedPassword);
   handleServiceResponse(res, serviceResponse, 201);
 });
 

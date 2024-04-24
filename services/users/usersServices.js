@@ -27,7 +27,7 @@ const getUserById = async userId => {
   });
 };
 
-const addUser = async (email, hashedPassword) => {
+const addUser = async (name, email, hashedPassword) => {
   return safelyPerformDatabaseOperation(async () => {
     const existingUser = await getUserByEmail(email);
     if (existingUser.result != null) {
@@ -37,8 +37,12 @@ const addUser = async (email, hashedPassword) => {
     const container = await getUsersContainer();
     const newUser = {
       id: uuidv4(),
+      username: name,
+      bio: '',
       email,
       password: hashedPassword,
+      plans: [],
+      history: [],
       createdAt: new Date(),
     };
     const { resource } = await container.items.create(newUser);
