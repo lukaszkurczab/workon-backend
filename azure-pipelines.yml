@@ -8,7 +8,7 @@ pool:
 
 variables:
   azureSubscription: '1c9b1cea-b27a-4a48-80ed-545acc9d1ea5'
-  webAppName: 'workon-backend'
+  webAppName: 'workon-api'
   environmentName: 'production'
 
 stages:
