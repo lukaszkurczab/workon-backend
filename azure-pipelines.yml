@@ -8,7 +8,7 @@ pool:
 
 variables:
   azureSubscription: '1c9b1cea-b27a-4a48-80ed-545acc9d1ea5'
-  webAppName: 'workon-api'
+  functionName: 'workon-backend'
   environmentName: 'production'
 
 stages:
@@ -31,8 +31,35 @@ stages:
               npm run build
             displayName: 'npm install and build'
 
-          - task: AzureWebApp@1
+          - task: ArchiveFiles@2
             inputs:
-              azureSubscription: $(azureSubscription)
-              appName: $(webAppName)
-              package: '$(Build.ArtifactStagingDirectory)/'
+              rootFolderOrFile: '$(System.DefaultWorkingDirectory)' # Adjust your project's structure if needed
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/$(functionName).zip'
+              replaceExistingArchive: true
+            displayName: 'Archive files'
+
+          - publish: $(Build.ArtifactStagingDirectory)/$(functionName).zip
+            artifact: drop
+
+  - stage: Deploy
+    displayName: 'Deploy stage'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployFunctionApp
+        displayName: 'Deploy Function App'
+        environment: $(environmentName)
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureFunctionApp@1
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    appType: 'functionAppLinux' # Use 'functionApp' for Windows
+                    appName: $(functionName)
+                    package: $(Pipeline.Workspace)/drop/$(functionName).zip
