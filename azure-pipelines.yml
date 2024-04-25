@@ -15,9 +15,6 @@ steps:
   - script: npm install
     displayName: 'Install dependencies'
 
-  - script: npm start
-    displayName: 'Start application'
-
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
