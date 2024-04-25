@@ -11,55 +11,18 @@ variables:
   functionName: 'workon-backend'
   environmentName: 'production'
 
-stages:
-  - stage: Build
-    displayName: 'Build stage'
-    jobs:
-      - job: Build
-        displayName: 'Build'
-        pool:
-          vmImage: 'ubuntu-latest'
+steps:
+  - script: npm install
+    displayName: 'Install dependencies'
 
-        steps:
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '20.x'
-            displayName: 'Install Node.js'
+  - script: npm start
+    displayName: 'Start application'
 
-          - script: |
-              npm install
-              npm run build
-            displayName: 'npm install and build'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'workon-backend-artifact'
+      publishLocation: 'container'
 
-          - task: ArchiveFiles@2
-            inputs:
-              rootFolderOrFile: '$(System.DefaultWorkingDirectory)' # Adjust your project's structure if needed
-              includeRootFolder: false
-              archiveType: 'zip'
-              archiveFile: '$(Build.ArtifactStagingDirectory)/$(functionName).zip'
-              replaceExistingArchive: true
-            displayName: 'Archive files'
-
-          - publish: $(Build.ArtifactStagingDirectory)/$(functionName).zip
-            artifact: drop
-
-  - stage: Deploy
-    displayName: 'Deploy stage'
-    dependsOn: Build
-    condition: succeeded()
-    jobs:
-      - deployment: DeployFunctionApp
-        displayName: 'Deploy Function App'
-        environment: $(environmentName)
-        pool:
-          vmImage: 'ubuntu-latest'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureFunctionApp@1
-                  inputs:
-                    azureSubscription: $(azureSubscription)
-                    appType: 'functionAppLinux' # Use 'functionApp' for Windows
-                    appName: $(functionName)
-                    package: $(Pipeline.Workspace)/drop/$(functionName).zip
+  - script: ls -la $(Build.ArtifactStagingDirectory)
+    displayName: 'List artifact staging directory'
