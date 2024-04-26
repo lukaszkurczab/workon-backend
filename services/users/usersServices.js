@@ -88,7 +88,7 @@ const addHistoryItemToUser = async (userId, historyItem) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
     const newHistoryItem = { id: uuidv4(), ...historyItem };
-    const operation = [{ op: 'add', path: '/history', value: newHistoryItem }];
+    const operation = [{ op: 'add', path: '/history/-', value: newHistoryItem }];
     await container.item(userId, userId).patch(operation);
     return newHistoryItem;
   });
@@ -98,7 +98,7 @@ const addPlanToUser = async (userId, plan) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
     const newPlan = { id: uuidv4(), ...plan };
-    const operation = [{ op: 'add', path: '/plans', value: newPlan }];
+    const operation = [{ op: 'add', path: '/plans/-', value: newPlan }];
     await container.item(userId, userId).patch(operation);
     return newPlan;
   });
