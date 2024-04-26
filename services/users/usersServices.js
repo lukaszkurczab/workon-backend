@@ -23,7 +23,7 @@ const getUserById = async userId => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
     const { resource } = await container.item(userId, userId).read();
-    return resource || null;
+    return resource.result || null;
   });
 };
 
