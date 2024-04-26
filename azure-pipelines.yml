@@ -7,7 +7,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  azureSubscription: '1c9b1cea-b27a-4a48-80ed-545acc9d1ea5'
+  azureSubscription: '3e185b0a-58eb-4c04-bfd1-32d364e42d5b'
   functionName: 'workon-backend'
   environmentName: 'production'
 
