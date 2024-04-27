@@ -23,7 +23,7 @@ const getUserById = async userId => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
     const { resource } = await container.item(userId, userId).read();
-    return resource.result || null;
+    return resource || null;
   });
 };
 
@@ -112,7 +112,7 @@ const editUserPlan = async (userId, updatedPlan) => {
       throw new Error('User not found');
     }
 
-    const planIndex = user.plans.findIndex(plan => plan.id === updatedPlan.id);
+    const planIndex = user.result.plans.findIndex(plan => plan.id === updatedPlan.id);
     if (planIndex === -1) {
       throw new Error('Plan not found');
     }
@@ -138,7 +138,7 @@ const removePlanFromUser = async (userId, planId) => {
       throw new Error('User not found');
     }
 
-    const planIndex = user.plans.findIndex(plan => plan.id === planId);
+    const planIndex = user.result.plans.findIndex(plan => plan.id === planId);
     if (planIndex === -1) {
       throw new Error('Plan not found');
     }
