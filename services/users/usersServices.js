@@ -27,6 +27,18 @@ const getUserById = async userId => {
   });
 };
 
+const getUserByUsername = async username => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const querySpec = {
+      query: 'SELECT * FROM c WHERE c.username = @username',
+      parameters: [{ name: '@username', value: username }],
+    };
+    const { resources } = await container.items.query(querySpec).fetchAll();
+    return resources[0] || null;
+  });
+};
+
 const addUser = async (name, email, hashedPassword) => {
   return safelyPerformDatabaseOperation(async () => {
     const existingUser = await getUserByEmail(email);
@@ -47,6 +59,20 @@ const addUser = async (name, email, hashedPassword) => {
     };
     const { resource } = await container.items.create(newUser);
     return resource;
+  });
+};
+
+const updateUserUsername = async (userId, newUsername) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const userWithNewUsername = await getUserByUsername(newUsername);
+    if (userWithNewUsername) {
+      throw new Error('Username is already taken');
+    }
+
+    const operation = [{ op: 'replace', path: '/username', value: newUsername }];
+    await container.item(userId, userId).patch(operation);
+    return { message: 'Username updated successfully' };
   });
 };
 
@@ -155,6 +181,77 @@ const removePlanFromUser = async (userId, planId) => {
   });
 };
 
+const getPublicPlans = async userId => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const querySpec = {
+      query: 'SELECT c.plans FROM c WHERE c.id = @userId AND ARRAY_CONTAINS(c.plans, {"public": true}, true)',
+      parameters: [{ name: '@userId', value: userId }],
+    };
+    const { resources } = await container.items.query(querySpec).fetchAll();
+    return resources
+      .map(user => user.plans)
+      .flat()
+      .filter(plan => plan.public);
+  });
+};
+
+const getPublicRecords = async userId => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const querySpec = {
+      query: 'SELECT c.records FROM c WHERE c.id = @userId AND ARRAY_CONTAINS(c.records, {"public": true}, true)',
+      parameters: [{ name: '@userId', value: userId }],
+    };
+    const { resources } = await container.items.query(querySpec).fetchAll();
+    return resources
+      .map(user => user.records)
+      .flat()
+      .filter(record => record.public);
+  });
+};
+
+const getPublicHistoryItems = async userId => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const querySpec = {
+      query: 'SELECT c.history FROM c WHERE c.id = @userId AND ARRAY_CONTAINS(c.history, {"public": true}, true)',
+      parameters: [{ name: '@userId', value: userId }],
+    };
+    const { resources } = await container.items.query(querySpec).fetchAll();
+    return resources
+      .map(user => user.history)
+      .flat()
+      .filter(history => history.public);
+  });
+};
+
+const setItemPublicStatus = async (userId, itemType, itemId, isPublic) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const user = await getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const itemIndex = user[itemType].findIndex(item => item.id === itemId);
+    if (itemIndex === -1) {
+      throw new Error(`${itemType.slice(0, -1)} not found`);
+    }
+
+    const operation = [
+      {
+        op: 'replace',
+        path: `/${itemType}/${itemIndex}/public`,
+        value: isPublic,
+      },
+    ];
+
+    await container.item(userId, userId).patch(operation);
+    return { message: `${itemType.slice(0, -1)} public status updated successfully` };
+  });
+};
+
 module.exports = {
   addUser,
   queryUsers,
@@ -164,4 +261,9 @@ module.exports = {
   editUserPlan,
   removePlanFromUser,
   updateUserPassword,
+  updateUserUsername,
+  getPublicPlans,
+  getPublicRecords,
+  getPublicHistoryItems,
+  setItemPublicStatus,
 };

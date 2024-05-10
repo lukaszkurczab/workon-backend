@@ -21,24 +21,41 @@ router.get('/', async (req, res) => {
   handleServiceResponse(res, serviceResponse);
 });
 
-router.put('/history/:id', async (req, res) => {
+router.put('/username/:id', async (req, res) => {
   const userId = req.params.id;
-  const historyItem = req.body;
-  const serviceResponse = await usersServices.addHistoryItemToUser(userId, historyItem);
+  const newUsername = req.body.newUsername;
+  const serviceResponse = await usersServices.updateUserUsername(userId, newUsername);
   handleServiceResponse(res, serviceResponse);
 });
 
-router.post('/plans/:id', async (req, res) => {
+router.get('/public/plans/:id', async (req, res) => {
   const userId = req.params.id;
-  const plan = req.body;
-  const serviceResponse = await usersServices.addPlanToUser(userId, plan);
-  handleServiceResponse(res, serviceResponse, 201);
+  const serviceResponse = await usersServices.getPublicPlans(userId);
+  handleServiceResponse(res, serviceResponse);
+});
+
+router.get('/public/records/:id', async (req, res) => {
+  const userId = req.params.id;
+  const serviceResponse = await usersServices.getPublicRecords(userId);
+  handleServiceResponse(res, serviceResponse);
+});
+
+router.get('/public/history/:id', async (req, res) => {
+  const userId = req.params.id;
+  const serviceResponse = await usersServices.getPublicHistoryItems(userId);
+  handleServiceResponse(res, serviceResponse);
+});
+
+router.post('/set-public/:itemType/:userId/:itemId', async (req, res) => {
+  const { itemType, userId, itemId } = req.params;
+  const isPublic = req.body.isPublic;
+  const serviceResponse = await usersServices.setItemPublicStatus(userId, itemType, itemId, isPublic);
+  handleServiceResponse(res, serviceResponse);
 });
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const serviceResponse = await usersServices.getUserByEmail(email);
-
   if (serviceResponse.error) {
     handleServiceResponse(res, serviceResponse);
     return;
@@ -56,7 +73,6 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
-
   const serviceResponse = await usersServices.addUser(name, email, hashedPassword);
   handleServiceResponse(res, serviceResponse, 201);
 });
