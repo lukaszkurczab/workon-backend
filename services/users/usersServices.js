@@ -66,7 +66,7 @@ const updateUserUsername = async (userId, newUsername) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
     const userWithNewUsername = await getUserByUsername(newUsername);
-    if (userWithNewUsername) {
+    if (userWithNewUsername.result) {
       throw new Error('Username is already taken');
     }
 
