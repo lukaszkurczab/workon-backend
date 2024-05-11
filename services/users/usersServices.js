@@ -72,7 +72,7 @@ const updateUserUsername = async (userId, newUsername) => {
 
     const operation = [{ op: 'replace', path: '/username', value: newUsername }];
     await container.item(userId, userId).patch(operation);
-    return { message: 'Username updated successfully' };
+    return newUsername;
   });
 };
 
