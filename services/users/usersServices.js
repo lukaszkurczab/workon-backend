@@ -2,6 +2,7 @@ const cosmosConfigModule = require('../../cosmosConfig');
 const { v4: uuidv4 } = require('uuid');
 
 let cachedContainer = null;
+
 const getUsersContainer = async () => {
   if (!cachedContainer) {
     cachedContainer = await cosmosConfigModule.getUsersContainer();
@@ -87,6 +88,20 @@ const updateUserPassword = async (userId, newPassword) => {
     const operation = [{ op: 'replace', path: '/password', value: newPassword }];
     await container.item(userId, userId).patch(operation);
     return { message: 'Password updated successfully' };
+  });
+};
+
+const updateUserToken = async (email, token) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const user = await getUserByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const container = await getUsersContainer();
+    const operation = [{ op: 'replace', path: '/token', value: token }];
+    await container.item(user.result.id, user.result.id).patch(operation);
+    return { message: 'Token updated successfully' };
   });
 };
 
@@ -268,6 +283,18 @@ const updateUserRecords = async (userId, newRecords) => {
   });
 };
 
+const getUserByToken = async token => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const querySpec = {
+      query: 'SELECT * FROM c WHERE c.token = @token',
+      parameters: [{ name: '@token', value: token }],
+    };
+    const { resources } = await container.items.query(querySpec).fetchAll();
+    return resources[0] || null;
+  });
+};
+
 module.exports = {
   addUser,
   queryUsers,
@@ -284,4 +311,6 @@ module.exports = {
   setItemPublicStatus,
   updateUserRecords,
   getUserById,
+  getUserByToken,
+  updateUserToken,
 };

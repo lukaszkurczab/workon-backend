@@ -46,6 +46,12 @@ router.get('/public/history/:id', async (req, res) => {
   handleServiceResponse(res, serviceResponse);
 });
 
+router.get('/auth/:token', async (req, res) => {
+  const token = req.params.token;
+  const serviceResponse = await usersServices.getUserByToken(token);
+  handleServiceResponse(res, serviceResponse);
+});
+
 router.post('/set-public/:itemType/:userId/:itemId', async (req, res) => {
   const { itemType, userId, itemId } = req.params;
   const isPublic = req.body.isPublic;
@@ -64,6 +70,7 @@ router.post('/login', async (req, res) => {
   const user = serviceResponse.result;
   if (user && (await bcrypt.compare(password, user.password))) {
     const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '1h' });
+    await usersServices.updateUserToken(email, token);
     res.json({ token, ...user });
   } else {
     res.status(401).json({ error: 'Unauthorized' });
