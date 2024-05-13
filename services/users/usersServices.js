@@ -234,7 +234,7 @@ const setItemPublicStatus = async (userId, itemType, itemId, isPublic) => {
       throw new Error('User not found');
     }
 
-    const itemIndex = user[itemType].findIndex(item => item.id === itemId);
+    const itemIndex = user.result[itemType].findIndex(item => item.id === itemId);
     if (itemIndex === -1) {
       throw new Error(`${itemType.slice(0, -1)} not found`);
     }
@@ -252,6 +252,25 @@ const setItemPublicStatus = async (userId, itemType, itemId, isPublic) => {
   });
 };
 
+const updateUserRecords = async (userId, newRecords) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer(); 
+    const user = await getUserById(userId); 
+
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    const operation = [
+        { op: 'replace', path: '/records', value: newRecords }
+    ];
+
+    await container.item(userId, userId).patch(operation);
+    return { message: 'Records updated successfully' };
+  })
+}
+
+
 module.exports = {
   addUser,
   queryUsers,
@@ -266,4 +285,5 @@ module.exports = {
   getPublicRecords,
   getPublicHistoryItems,
   setItemPublicStatus,
+  updateUserRecords
 };
