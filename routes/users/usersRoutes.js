@@ -99,16 +99,15 @@ router.put('/password/:id', async (req, res) => {
 });
 
 router.post('/update-records/:userId', async (req, res) => {
-    const userId = req.params.userId;
-    const newRecords = req.body.records;
+  const userId = req.params.userId;
+  const newRecords = req.body.records;
 
-    try {
-        const updatedUser = await usersServices.updateUserRecords(userId, newRecords);
-        res.json(updatedUser);
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
+  try {
+    const updatedUser = await usersServices.updateUserRecords(userId, newRecords);
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 });
-
 
 module.exports = router;

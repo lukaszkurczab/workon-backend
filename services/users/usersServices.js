@@ -254,22 +254,19 @@ const setItemPublicStatus = async (userId, itemType, itemId, isPublic) => {
 
 const updateUserRecords = async (userId, newRecords) => {
   return safelyPerformDatabaseOperation(async () => {
-    const container = await getUsersContainer(); 
-    const user = await getUserById(userId); 
+    const container = await getUsersContainer();
+    const user = await getUserById(userId);
 
     if (!user) {
-        throw new Error('User not found');
+      throw new Error('User not found');
     }
 
-    const operation = [
-        { op: 'replace', path: '/records', value: newRecords }
-    ];
+    const operation = [{ op: 'replace', path: '/records', value: newRecords }];
 
     await container.item(userId, userId).patch(operation);
     return { message: 'Records updated successfully' };
-  })
-}
-
+  });
+};
 
 module.exports = {
   addUser,
@@ -285,5 +282,5 @@ module.exports = {
   getPublicRecords,
   getPublicHistoryItems,
   setItemPublicStatus,
-  updateUserRecords
+  updateUserRecords,
 };
