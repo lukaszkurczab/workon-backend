@@ -93,9 +93,17 @@ router.delete('/plans/:id', async (req, res) => {
 
 router.put('/password/:id', async (req, res) => {
   const userId = req.params.id;
-  const newPassword = req.body.newPassword;
-  const serviceResponse = await usersServices.updateUserPassword(userId, newPassword);
-  handleServiceResponse(res, serviceResponse);
+  const { newPassword, oldPassword } = req.body;
+  const serviceResponse = await usersServices.getUserById(userId);
+  const user = serviceResponse.result;
+
+  if (user && (await bcrypt.compare(oldPassword, user.password))) {
+    const newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    const serviceResponse = await usersServices.updateUserPassword(userId, newHashedPassword);
+    handleServiceResponse(res, serviceResponse);
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
 });
 
 router.post('/update-records/:userId', async (req, res) => {

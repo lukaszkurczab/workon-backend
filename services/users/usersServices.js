@@ -283,4 +283,5 @@ module.exports = {
   getPublicHistoryItems,
   setItemPublicStatus,
   updateUserRecords,
+  getUserById,
 };
