@@ -4,10 +4,10 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
-const exercisesRouter = require('./routes/exercises/exercisesRoutes');
-const historyRouter = require('./routes/history/historyRoutes');
-const plansRouter = require('./routes/plans/plansRoutes');
-const usersRouter = require('./routes/users/usersRoutes');
+const exercisesRouter = require('./routes/exercisesRoutes');
+const historyRouter = require('./routes/historyRoutes');
+const plansRouter = require('./routes/plansRoutes');
+const usersRouter = require('./routes/usersRoutes');
 
 const app = express();
 

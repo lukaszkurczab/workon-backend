@@ -1,24 +1,8 @@
-const cosmosConfigModule = require('../../cosmosConfig');
 const { v4: uuidv4 } = require('uuid');
+const { getContainer, safelyPerformDatabaseOperation } = require('../utils/dbUtils');
+const cosmosConfigModule = require('../cosmosConfig');
 
-let cachedContainer = null;
-
-const getUsersContainer = async () => {
-  if (!cachedContainer) {
-    cachedContainer = await cosmosConfigModule.getUsersContainer();
-  }
-  return cachedContainer;
-};
-
-const safelyPerformDatabaseOperation = async operation => {
-  try {
-    const result = await operation();
-    return { result, error: null };
-  } catch (error) {
-    console.error('Database operation failed:', error);
-    return { result: null, error };
-  }
-};
+const getUsersContainer = async () => getContainer(cosmosConfigModule.getUsersContainer);
 
 const getUserById = async userId => {
   return safelyPerformDatabaseOperation(async () => {
