@@ -91,20 +91,6 @@ const updateUserPassword = async (userId, newPassword) => {
   });
 };
 
-const updateUserToken = async (email, token) => {
-  return safelyPerformDatabaseOperation(async () => {
-    const user = await getUserByEmail(email);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const container = await getUsersContainer();
-    const operation = [{ op: 'replace', path: '/token', value: token }];
-    await container.item(user.result.id, user.result.id).patch(operation);
-    return { message: 'Token updated successfully' };
-  });
-};
-
 const queryUsers = async () => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
@@ -312,5 +298,4 @@ module.exports = {
   updateUserRecords,
   getUserById,
   getUserByToken,
-  updateUserToken,
 };

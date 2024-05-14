@@ -49,7 +49,13 @@ router.get('/public/history/:id', async (req, res) => {
 router.get('/auth/:token', async (req, res) => {
   const token = req.params.token;
   const serviceResponse = await usersServices.getUserByToken(token);
-  handleServiceResponse(res, serviceResponse);
+  if (serviceResponse.error) {
+    handleServiceResponse(res, serviceResponse);
+  } else if (!serviceResponse.result) {
+    res.status(404).json({ error: 'User not found' });
+  } else {
+    res.json(serviceResponse.result);
+  }
 });
 
 router.post('/set-public/:itemType/:userId/:itemId', async (req, res) => {
@@ -69,7 +75,7 @@ router.post('/login', async (req, res) => {
 
   const user = serviceResponse.result;
   if (user && (await bcrypt.compare(password, user.password))) {
-    const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id }, secretKey);
     await usersServices.updateUserToken(email, token);
     res.json({ token, ...user });
   } else {
