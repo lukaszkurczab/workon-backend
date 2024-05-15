@@ -230,7 +230,9 @@ const setItemsPublicStatus = async (userId, itemType, items) => {
 
     const operation = [{ op: 'replace', path: `/${itemType}`, value: updatedItems }];
     await container.item(userId, userId).patch(operation);
-    return updatedItems;
+
+    const publicItems = updatedItems.filter(item => item.public);
+    return publicItems;
   });
 };
 
