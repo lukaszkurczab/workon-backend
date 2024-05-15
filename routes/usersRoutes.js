@@ -74,12 +74,12 @@ router.get('/auth/:token', async (req, res) => {
   }
 });
 
-router.post('/set-public/:itemType/:userId/:itemId', async (req, res) => {
+router.post('/set-public/:itemType/:userId', async (req, res) => {
   try {
-    const { itemType, userId, itemId } = req.params;
-    const isPublic = req.body.isPublic;
-    const serviceResponse = await usersServices.setItemPublicStatus(userId, itemType, itemId, isPublic);
-    handleServiceResponse(res, serviceResponse);
+    const { itemType, userId } = req.params;
+    const items = req.body.items;
+    const updatedItems = await usersServices.setItemsPublicStatus(userId, itemType, items);
+    handleServiceResponse(res, { result: updatedItems, error: null });
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
   }
