@@ -14,19 +14,18 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const newPlan = req.body;
-    const serviceResponse = await plansServices.addPlan(newPlan);
+    const { newPlan, userId } = req.body;
+    const serviceResponse = await plansServices.addPlan(newPlan, userId);
     handleServiceResponse(res, serviceResponse, 201);
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/', async (req, res) => {
   try {
-    const { id } = req.params;
-    const updatedPlan = req.body;
-    const serviceResponse = await plansServices.updatePlan(id, updatedPlan);
+    const { updatedPlan } = req.body;
+    const serviceResponse = await plansServices.updatePlan(updatedPlan);
     handleServiceResponse(res, serviceResponse);
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
