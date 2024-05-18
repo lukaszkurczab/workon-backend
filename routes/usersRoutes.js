@@ -96,8 +96,7 @@ router.post('/login', async (req, res) => {
 
     const user = serviceResponse.result;
     if (user && (await bcrypt.compare(password, user.password))) {
-      const token = jwt.sign({ userId: user.id }, secretKey);
-      res.json({ token, ...user });
+      res.json({ ...user });
     } else {
       res.status(401).json({ error: 'Unauthorized' });
     }
