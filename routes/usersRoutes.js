@@ -168,4 +168,15 @@ router.post('/update-records/:userId', async (req, res) => {
   }
 });
 
+router.put('/history/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const historyItem = req.body.historyItem;
+    const serviceResponse = await usersServices.addHistoryItemToUser(userId, historyItem);
+    handleServiceResponse(res, serviceResponse);
+  } catch (error) {
+    handleServiceResponse(res, { result: null, error });
+  }
+});
+
 module.exports = router;
