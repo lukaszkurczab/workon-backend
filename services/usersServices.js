@@ -4,10 +4,10 @@ const cosmosConfigModule = require('../cosmosConfig');
 
 const getUsersContainer = async () => getContainer(cosmosConfigModule.getUsersContainer);
 
-const getUserById = async userId => {
+const getUserById = async id => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
-    const { resource } = await container.item(userId, userId).read();
+    const { resource } = await container.item(id).read();
     return resource || null;
   });
 };
@@ -24,17 +24,23 @@ const getUserByUsername = async username => {
   });
 };
 
-const addUser = async (name, email, hashedPassword) => {
+const addUser = async (username, email, hashedPassword) => {
   return safelyPerformDatabaseOperation(async () => {
-    const existingUser = await getUserByEmail(email);
-    if (existingUser.result != null) {
+    const existingUserWithEmail = await getUserByEmail(email);
+    const existingUserWithUsername = await getUserByUsername(username);
+
+    if (existingUserWithEmail.result != null) {
       throw new Error('User already exists with that email');
+    }
+
+    if (existingUserWithUsername.result != null) {
+      throw new Error('User already exists with that username');
     }
 
     const container = await getUsersContainer();
     const newUser = {
       id: uuidv4(),
-      username: name,
+      username: username,
       bio: '',
       email,
       password: hashedPassword,
@@ -92,6 +98,16 @@ const getUserByEmail = async email => {
     };
     const { resources } = await container.items.query(querySpec).fetchAll();
     return resources[0] || null;
+  });
+};
+
+const saveRefreshToken = async (userId, refreshToken) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const { resource: user } = await container.item(userId).read();
+    user.refreshToken = refreshToken;
+    await container.item(userId).replace(user);
+    return user;
   });
 };
 
@@ -281,4 +297,5 @@ module.exports = {
   updateUserRecords,
   getUserById,
   getUserByToken,
+  saveRefreshToken,
 };

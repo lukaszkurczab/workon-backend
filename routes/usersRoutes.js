@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const usersServices = require('../services/usersServices');
 const handleServiceResponse = require('../utils/handleServiceResponse');
+const { generateAccessToken, generateRefreshToken } = require('../utils/usersUtils');
+const authenticateToken = require('../middlewares/authenticateToken');
 
 const secretKey = process.env.SECRET_KEY || ';*Ki$a53O52zfb1G?oFa(lve&J)]r0ID';
 const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 10;
@@ -17,7 +19,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.put('/username/:id', async (req, res) => {
+router.put('/username/:id', authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
     const newUsername = req.body.newUsername;
@@ -58,23 +60,7 @@ router.get('/public/history/:id', async (req, res) => {
   }
 });
 
-router.get('/auth/:token', async (req, res) => {
-  try {
-    const token = req.params.token;
-    const serviceResponse = await usersServices.getUserByToken(token);
-    if (serviceResponse.error) {
-      handleServiceResponse(res, serviceResponse);
-    } else if (!serviceResponse.result) {
-      res.status(404).json({ error: 'User not found' });
-    } else {
-      res.json(serviceResponse.result);
-    }
-  } catch (error) {
-    handleServiceResponse(res, { result: null, error });
-  }
-});
-
-router.post('/set-public/:itemType/:userId', async (req, res) => {
+router.post('/set-public/:itemType/:userId', authenticateToken, async (req, res) => {
   try {
     const { itemType, userId } = req.params;
     const items = req.body.items;
@@ -96,7 +82,12 @@ router.post('/login', async (req, res) => {
 
     const user = serviceResponse.result;
     if (user && (await bcrypt.compare(password, user.password))) {
-      res.json({ ...user });
+      const accessToken = generateAccessToken(user);
+      const refreshToken = generateRefreshToken(user);
+
+      await usersServices.saveRefreshToken(user.id, refreshToken);
+
+      res.json({ accessToken, refreshToken });
     } else {
       res.status(401).json({ error: 'Unauthorized' });
     }
@@ -107,16 +98,16 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { username, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const serviceResponse = await usersServices.addUser(name, email, hashedPassword);
+    const serviceResponse = await usersServices.addUser(username, email, hashedPassword);
     handleServiceResponse(res, serviceResponse, 201);
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
   }
 });
 
-router.put('/plans/:id', async (req, res) => {
+router.put('/plans/:id', authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
     const plan = req.body;
@@ -127,7 +118,7 @@ router.put('/plans/:id', async (req, res) => {
   }
 });
 
-router.delete('/plans/:id', async (req, res) => {
+router.delete('/plans/:id', authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
     const planId = req.body.id;
@@ -138,7 +129,7 @@ router.delete('/plans/:id', async (req, res) => {
   }
 });
 
-router.put('/password/:id', async (req, res) => {
+router.put('/password/:id', authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
     const { newPassword, oldPassword } = req.body;
@@ -157,7 +148,7 @@ router.put('/password/:id', async (req, res) => {
   }
 });
 
-router.post('/update-records/:userId', async (req, res) => {
+router.post('/update-records/:userId', authenticateToken, async (req, res) => {
   try {
     const userId = req.params.userId;
     const newRecords = req.body.records;
@@ -168,7 +159,7 @@ router.post('/update-records/:userId', async (req, res) => {
   }
 });
 
-router.put('/history/:userId', async (req, res) => {
+router.put('/history/:userId', authenticateToken, async (req, res) => {
   try {
     const userId = req.params.userId;
     const historyItem = req.body.historyItem;
@@ -176,6 +167,32 @@ router.put('/history/:userId', async (req, res) => {
     handleServiceResponse(res, serviceResponse);
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
+  }
+});
+
+router.post('/token', async (req, res) => {
+  const { token } = req.body;
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    const serviceResponse = await usersServices.getUserById(decoded.id);
+    if (serviceResponse.error) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const user = serviceResponse.result;
+
+    if (!user || user.refreshToken !== token) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const accessToken = generateAccessToken(user);
+    res.json({ accessToken });
+  } catch (error) {
+    res.status(403).json({ error: 'Forbidden' });
   }
 });
 
