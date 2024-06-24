@@ -179,18 +179,45 @@ router.post('/token', async (req, res) => {
   try {
     const decoded = jwt.verify(token, secretKey);
     const serviceResponse = await usersServices.getUserById(decoded.id);
+
     if (serviceResponse.error) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
     const user = serviceResponse.result;
-
     if (!user || user.refreshToken !== token) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
     const accessToken = generateAccessToken(user);
     res.json({ accessToken });
+  } catch (error) {
+    res.status(403).json({ error: 'Forbidden' });
+  }
+});
+
+router.get('/:token', authenticateToken, async (req, res) => {
+  const token = req.params.token;
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    const serviceResponse = await usersServices.getUserById(decoded.id);
+
+    if (serviceResponse.error) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const user = {
+      username: serviceResponse.result.username,
+      bio: serviceResponse.result.bio,
+      email: serviceResponse.result.email,
+      plans: serviceResponse.result.plans,
+      history: serviceResponse.result.history,
+    };
+    handleServiceResponse(res, { result: user });
   } catch (error) {
     res.status(403).json({ error: 'Forbidden' });
   }

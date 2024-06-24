@@ -16,11 +16,12 @@ const queryPlans = async () => {
 
 const addPlan = async (newPlan, userId) => {
   const isValid = isPlanValid(newPlan);
+  console.log(isValid);
   if (isValid === true) {
     const operation = async () => {
       const container = await getPlansContainer();
       const id = uuidv4();
-      const planToAdd = { id, authorId: userId, ...newPlan };
+      const planToAdd = { ...newPlan, id, authorId: userId };
       const { resource: createdPlan } = await container.items.create(planToAdd);
       return createdPlan;
     };

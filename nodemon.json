@@ -1,5 +1,5 @@
 {
   "ignore": ["*.test.js", "tmp/", "logs/"],
-  "watch": ["routes/", "services/", "app.js", "utils/"],
+  "watch": ["routes/", "services/", "app.js", "utils/", "middlewares/"],
   "ext": "js,json,ejs"
 }

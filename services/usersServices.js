@@ -7,8 +7,12 @@ const getUsersContainer = async () => getContainer(cosmosConfigModule.getUsersCo
 const getUserById = async id => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
-    const { resource } = await container.item(id).read();
-    return resource || null;
+    const querySpec = {
+      query: 'SELECT * FROM c WHERE c.id = @id',
+      parameters: [{ name: '@id', value: id }],
+    };
+    const { resources } = await container.items.query(querySpec).fetchAll();
+    return resources[0] || null;
   });
 };
 
@@ -104,9 +108,9 @@ const getUserByEmail = async email => {
 const saveRefreshToken = async (userId, refreshToken) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
-    const { resource: user } = await container.item(userId).read();
-    user.refreshToken = refreshToken;
-    await container.item(userId).replace(user);
+    const operation = [{ op: 'replace', path: '/refreshToken', value: refreshToken }];
+    await container.item(userId, userId).patch(operation);
+    const user = await getUserById(userId);
     return user;
   });
 };

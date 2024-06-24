@@ -3,10 +3,8 @@ function isPlanValid(plan) {
   const planPublicType = ['public', 'restricted', 'private'];
 
   if (typeof plan.name !== 'string') return 'Unexpected name type';
-  if (!planLevel.includes(plan.level)) return 'Unexpected plan level';
   if (!planPublicType.includes(plan.publicType)) return 'Unexpected public type';
   if (!Array.isArray(plan.allowedUsers)) return 'Unexpected allowed users';
-  if (typeof plan.desc !== 'string') return 'Unexpected description type';
   if (!Array.isArray(plan.days)) return 'Unexpected days type';
 
   for (let day of plan.days) {
@@ -22,9 +20,7 @@ function isPlanValid(plan) {
       if (!Array.isArray(exercise.series)) return 'Unexpected series type';
 
       for (let series of exercise.series) {
-        if (typeof series.id !== 'number') return 'Unexpected series id type';
         if (typeof series.reps !== 'number') return 'Unexpected series reps type';
-        console.log(exercise.id);
         if (series.reps < exercise.repsRange[0]) return 'Reps are lower than min reps range';
         if (series.reps > exercise.repsRange[1]) return 'Reps are higher than max reps range';
         if (typeof series.weight !== 'number') return 'Unexpected series weight type';
