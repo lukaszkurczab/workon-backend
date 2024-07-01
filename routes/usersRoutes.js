@@ -86,7 +86,6 @@ router.post('/login', async (req, res) => {
       const refreshToken = generateRefreshToken(user);
 
       await usersServices.saveRefreshToken(user.id, refreshToken);
-
       res.json({ accessToken, refreshToken });
     } else {
       res.status(401).json({ error: 'Unauthorized' });
@@ -186,6 +185,7 @@ router.post('/token', async (req, res) => {
 
     const user = serviceResponse.result;
     if (!user || user.refreshToken !== token) {
+      console.log(user);
       return res.status(403).json({ error: 'Forbidden' });
     }
 

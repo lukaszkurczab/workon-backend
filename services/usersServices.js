@@ -108,17 +108,21 @@ const getUserByEmail = async email => {
 const saveRefreshToken = async (userId, refreshToken) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
-    const operation = [{ op: 'replace', path: '/refreshToken', value: refreshToken }];
-    await container.item(userId, userId).patch(operation);
     const user = await getUserById(userId);
-    return user;
+
+    const operation = user.refreshToken
+      ? [{ op: 'replace', path: '/refreshToken', value: refreshToken }]
+      : [{ op: 'add', path: '/refreshToken', value: refreshToken }];
+
+    await container.item(userId, userId).patch(operation);
+    return await getUserById(userId);
   });
 };
 
 const addHistoryItemToUser = async (userId, historyItem) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
-    const newHistoryItem = { id: uuidv4(), ...historyItem };
+    const newHistoryItem = { ...historyItem, id: uuidv4() };
     const operation = [{ op: 'add', path: '/history/-', value: newHistoryItem }];
     await container.item(userId, userId).patch(operation);
     return newHistoryItem;
