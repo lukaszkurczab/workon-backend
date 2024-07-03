@@ -117,6 +117,17 @@ router.put('/plans/:id', authenticateToken, async (req, res) => {
   }
 });
 
+router.post('/plans/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const plan = req.body;
+    const serviceResponse = await usersServices.addPlanToUser(userId, plan);
+    handleServiceResponse(res, serviceResponse);
+  } catch (error) {
+    handleServiceResponse(res, { result: null, error });
+  }
+});
+
 router.delete('/plans/:id', authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
