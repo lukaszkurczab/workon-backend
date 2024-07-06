@@ -1,5 +1,4 @@
 function isPlanValid(plan) {
-  const planLevel = ['Beginner', 'Intermediate', 'Advanced'];
   const planPublicType = ['public', 'restricted', 'private'];
 
   if (typeof plan.name !== 'string') return 'Unexpected name type';

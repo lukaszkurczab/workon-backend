@@ -194,14 +194,14 @@ const getPublicPlans = async userId => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
     const querySpec = {
-      query: 'SELECT c.plans FROM c WHERE c.id = @userId AND ARRAY_CONTAINS(c.plans, {"public": true}, true)',
+      query: 'SELECT c.plans FROM c WHERE c.id = @userId AND ARRAY_CONTAINS(c.plans, {"publicType": "public"}, true)',
       parameters: [{ name: '@userId', value: userId }],
     };
     const { resources } = await container.items.query(querySpec).fetchAll();
     return resources
       .map(user => user.plans)
       .flat()
-      .filter(plan => plan.public);
+      .filter(plan => plan.publicType === 'public');
   });
 };
 
@@ -247,7 +247,7 @@ const setItemsPublicStatus = async (userId, itemType, items) => {
     const updatedItems = currentItems.map(currentItem => {
       const itemToUpdate = items.find(item => item.id === currentItem.id);
       if (itemToUpdate) {
-        return { ...currentItem, public: itemToUpdate.public };
+        return { ...currentItem, publicType: itemToUpdate.publicType };
       }
       return currentItem;
     });
@@ -255,7 +255,7 @@ const setItemsPublicStatus = async (userId, itemType, items) => {
     const operation = [{ op: 'replace', path: `/${itemType}`, value: updatedItems }];
     await container.item(userId, userId).patch(operation);
 
-    const publicItems = updatedItems.filter(item => item.public);
+    const publicItems = updatedItems.filter(item => item.publicType === 'public');
     return publicItems;
   });
 };

@@ -22,10 +22,26 @@ router.get('/', async (req, res) => {
 router.put('/username/:id', authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
-    const newUsername = req.body.newUsername;
+    const { newUsername, password } = req.body;
+    const userData = await usersServices.getUserById(userId);
+    const passwordIsValid = await bcrypt.compare(password, userData.result.password);
+
+    if (!passwordIsValid) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+
     const serviceResponse = await usersServices.updateUserUsername(userId, newUsername);
+
+    if (serviceResponse.error) {
+      if (serviceResponse.error.message === 'Username is already taken') {
+        return res.status(409).json({ error: 'Username is already taken' });
+      }
+      return res.status(500).json({ error: 'Database operation failed' });
+    }
+
     handleServiceResponse(res, serviceResponse);
   } catch (error) {
+    console.error(error);
     handleServiceResponse(res, { result: null, error });
   }
 });
