@@ -76,11 +76,22 @@ router.get('/public/history/:id', async (req, res) => {
   }
 });
 
-router.post('/set-public/:itemType/:userId', authenticateToken, async (req, res) => {
+router.post('/set-public/history/:userId', authenticateToken, async (req, res) => {
   try {
-    const { itemType, userId } = req.params;
+    const { userId } = req.params;
+    const { items, publicType } = req.body;
+    const updatedItems = await usersServices.setHistoryPublicStatus(userId, items, publicType);
+    handleServiceResponse(res, { result: updatedItems, error: null });
+  } catch (error) {
+    handleServiceResponse(res, { result: null, error });
+  }
+});
+
+router.post('/set-public/plans/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
     const items = req.body.items;
-    const updatedItems = await usersServices.setItemsPublicStatus(userId, itemType, items);
+    const updatedItems = await usersServices.setPlansPublicStatus(userId, items);
     handleServiceResponse(res, { result: updatedItems, error: null });
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
@@ -243,6 +254,7 @@ router.get('/:token', authenticateToken, async (req, res) => {
       email: serviceResponse.result.email,
       plans: serviceResponse.result.plans,
       history: serviceResponse.result.history,
+      settings: serviceResponse.result.settings,
     };
     handleServiceResponse(res, { result: user });
   } catch (error) {

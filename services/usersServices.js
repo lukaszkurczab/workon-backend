@@ -123,7 +123,7 @@ const addHistoryItemToUser = async (userId, historyItem) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
     const newHistoryItem = { ...historyItem, id: uuidv4() };
-    const operation = [{ op: 'add', path: '/history/-', value: newHistoryItem }];
+    const operation = [{ op: 'add', path: '/history/0', value: newHistoryItem }];
     await container.item(userId, userId).patch(operation);
     return newHistoryItem;
   });
@@ -235,7 +235,7 @@ const getPublicHistoryItems = async userId => {
   });
 };
 
-const setItemsPublicStatus = async (userId, itemType, items) => {
+const setHistoryPublicStatus = async (userId, items, publicType) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
     const user = await getUserById(userId);
@@ -243,7 +243,7 @@ const setItemsPublicStatus = async (userId, itemType, items) => {
       throw new Error('User not found');
     }
 
-    const currentItems = user.result[itemType];
+    const currentItems = user.result.history;
     const updatedItems = currentItems.map(currentItem => {
       const itemToUpdate = items.find(item => item.id === currentItem.id);
       if (itemToUpdate) {
@@ -252,7 +252,35 @@ const setItemsPublicStatus = async (userId, itemType, items) => {
       return currentItem;
     });
 
-    const operation = [{ op: 'replace', path: `/${itemType}`, value: updatedItems }];
+    const operation = [
+      { op: 'replace', path: `/history`, value: updatedItems },
+      { op: 'replace', path: `/settings/defaultHistoryPublicType`, value: publicType },
+    ];
+    await container.item(userId, userId).patch(operation);
+
+    const publicItems = updatedItems.filter(item => item.publicType === 'public');
+    return publicItems;
+  });
+};
+
+const setPlansPublicStatus = async (userId, items) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const user = await getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const currentItems = user.result.plans;
+    const updatedItems = currentItems.map(currentItem => {
+      const itemToUpdate = items.find(item => item.id === currentItem.id);
+      if (itemToUpdate) {
+        return { ...currentItem, publicType: itemToUpdate.publicType };
+      }
+      return currentItem;
+    });
+
+    const operation = [{ op: 'replace', path: `/plans`, value: updatedItems }];
     await container.item(userId, userId).patch(operation);
 
     const publicItems = updatedItems.filter(item => item.publicType === 'public');
@@ -301,7 +329,8 @@ module.exports = {
   getPublicPlans,
   getPublicRecords,
   getPublicHistoryItems,
-  setItemsPublicStatus,
+  setHistoryPublicStatus,
+  setPlansPublicStatus,
   updateUserRecords,
   getUserById,
   getUserByToken,
