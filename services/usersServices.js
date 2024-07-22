@@ -132,10 +132,22 @@ const addHistoryItemToUser = async (userId, historyItem) => {
 const addPlanToUser = async (userId, plan) => {
   return safelyPerformDatabaseOperation(async () => {
     const container = await getUsersContainer();
-    const newPlan = { id: uuidv4(), ...plan };
-    const operation = [{ op: 'add', path: '/plans/-', value: newPlan }];
+    const userItem = await container.item(userId, userId).read();
+    const userPlans = userItem.resource.plans || [];
+
+    const existingPlanIndex = userPlans.findIndex(p => p.id === plan.id);
+
+    if (existingPlanIndex !== -1) {
+      userPlans[existingPlanIndex] = plan;
+    } else {
+      const newPlan = { id: uuidv4(), ...plan };
+      userPlans.push(newPlan);
+    }
+
+    const operation = [{ op: 'replace', path: '/plans', value: userPlans }];
     await container.item(userId, userId).patch(operation);
-    return newPlan;
+
+    return plan.id ? plan : userPlans[userPlans.length - 1];
   });
 };
 
