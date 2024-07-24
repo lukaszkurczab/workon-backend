@@ -223,7 +223,6 @@ router.post('/token', async (req, res) => {
 
     const user = serviceResponse.result;
     if (!user || user.refreshToken !== token) {
-      console.log(user);
       return res.status(403).json({ error: 'Forbidden' });
     }
 
@@ -255,10 +254,67 @@ router.get('/:token', authenticateToken, async (req, res) => {
       plans: serviceResponse.result.plans,
       history: serviceResponse.result.history,
       settings: serviceResponse.result.settings,
+      searchHistory: serviceResponse.result.searchHistory,
     };
     handleServiceResponse(res, { result: user });
   } catch (error) {
     res.status(403).json({ error: 'Forbidden' });
+  }
+});
+
+router.put('/search-history/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const searchHistoryItem = req.body.searchHistoryItem;
+    const serviceResponse = await usersServices.addSearchHistoryItemToUser(userId, searchHistoryItem);
+    handleServiceResponse(res, serviceResponse);
+  } catch (error) {
+    handleServiceResponse(res, { result: null, error });
+  }
+});
+
+router.delete('/search-history/:userId/:itemId', authenticateToken, async (req, res) => {
+  try {
+    const { userId, itemId } = req.params;
+    const serviceResponse = await usersServices.removeSearchHistoryItemFromUser(userId, itemId);
+    handleServiceResponse(res, serviceResponse);
+  } catch (error) {
+    handleServiceResponse(res, { result: null, error });
+  }
+});
+
+router.delete('/search-history/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const serviceResponse = await usersServices.clearSearchHistoryForUser(userId);
+    handleServiceResponse(res, serviceResponse);
+  } catch (error) {
+    handleServiceResponse(res, { result: null, error });
+  }
+});
+
+router.post('/search/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { query, maxResults } = req.body;
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
+    }
+
+    const maxResultsInt = parseInt(maxResults, 10) || 10;
+
+    const { result, error } = await usersServices.searchUsersByUsername(query.toLowerCase(), maxResultsInt, userId);
+
+    if (error) {
+      console.error('Error searching users:', error);
+      return res.status(500).json({ error: 'An error occurred while searching for users' });
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    res.status(500).json({ error: 'An unexpected error occurred' });
   }
 });
 

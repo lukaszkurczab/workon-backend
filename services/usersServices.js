@@ -328,11 +328,87 @@ const getUserByToken = async token => {
   });
 };
 
+const addSearchHistoryItemToUser = async (userId, searchHistoryItem) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const user = await getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const { id, userId: newUserId, ...newItemData } = searchHistoryItem;
+
+    const existingItemIndex = user.result.searchHistory.findIndex(item => {
+      if (typeof item === 'string') return false;
+      const { id: existingId, userId: existingUserId } = item;
+      return existingUserId === newUserId;
+    });
+
+    if (existingItemIndex !== -1) {
+      user.result.searchHistory.splice(existingItemIndex, 1);
+    }
+
+    const newSearchHistoryItem = { ...newItemData, id: uuidv4(), userId: newUserId };
+    const updatedSearchHistory = [newSearchHistoryItem, ...user.result.searchHistory];
+
+    const operation = [{ op: 'replace', path: '/searchHistory', value: updatedSearchHistory }];
+    await container.item(userId, userId).patch(operation);
+    return newSearchHistoryItem;
+  });
+};
+
+const removeSearchHistoryItemFromUser = async (userId, searchHistoryItemId) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const user = await getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const updatedSearchHistory = await user.result.searchHistory.filter(item => item.id !== searchHistoryItemId);
+
+    const operation = [{ op: 'replace', path: '/searchHistory', value: updatedSearchHistory }];
+    await container.item(userId, userId).patch(operation);
+    return { message: 'Search history item removed successfully' };
+  });
+};
+
+const clearSearchHistoryForUser = async userId => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const user = await getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const operation = [{ op: 'replace', path: '/searchHistory', value: [] }];
+    await container.item(userId, userId).patch(operation);
+    return { message: 'Search history cleared successfully' };
+  });
+};
+
+const searchUsersByUsername = async (query, maxResults, userId) => {
+  return safelyPerformDatabaseOperation(async () => {
+    const container = await getUsersContainer();
+    const querySpec = {
+      query: 'SELECT * FROM c WHERE LOWER(c.username) LIKE @query AND c.id != @userId',
+      parameters: [
+        { name: '@query', value: `%${query.toLowerCase()}%` },
+        { name: '@userId', value: userId },
+      ],
+    };
+
+    const { resources } = await container.items.query(querySpec).fetchAll();
+    return resources
+      .slice(0, maxResults)
+      .map(item => ({ name: item.username, image: 'image', userId: item.id, id: uuidv4() }));
+  });
+};
+
 module.exports = {
   addUser,
   queryUsers,
   getUserByEmail,
-  addHistoryItemToUser,
+  addSearchHistoryItemToUser,
   addPlanToUser,
   editUserPlan,
   removePlanFromUser,
@@ -347,4 +423,8 @@ module.exports = {
   getUserById,
   getUserByToken,
   saveRefreshToken,
+  removeSearchHistoryItemFromUser,
+  clearSearchHistoryForUser,
+  addHistoryItemToUser,
+  searchUsersByUsername,
 };

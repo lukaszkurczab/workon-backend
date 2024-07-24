@@ -1,5 +1,3 @@
-const cosmosConfigModule = require('../cosmosConfig');
-
 const getContainer = async getContainerFunction => {
   let cachedContainer = null;
   if (!cachedContainer) {
