@@ -262,17 +262,6 @@ router.get('/:token', authenticateToken, async (req, res) => {
   }
 });
 
-router.put('/search-history/:userId', authenticateToken, async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const searchHistoryItem = req.body.searchHistoryItem;
-    const serviceResponse = await usersServices.addSearchHistoryItemToUser(userId, searchHistoryItem);
-    handleServiceResponse(res, serviceResponse);
-  } catch (error) {
-    handleServiceResponse(res, { result: null, error });
-  }
-});
-
 router.delete('/search-history/:userId/:itemId', authenticateToken, async (req, res) => {
   try {
     const { userId, itemId } = req.params;
@@ -315,6 +304,44 @@ router.post('/search/:userId', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Unexpected error:', error);
     res.status(500).json({ error: 'An unexpected error occurred' });
+  }
+});
+
+router.post('/search-user/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const searchHistoryItem = req.body;
+
+    if (!userId || !searchHistoryItem || !searchHistoryItem.userId) {
+      return res.status(400).json({ error: 'Invalid request data. userId and searchHistoryItem are required.' });
+    }
+
+    const addHistoryResponse = await usersServices.addSearchHistoryItemToUser(userId, searchHistoryItem);
+
+    if (addHistoryResponse.error) {
+      return res.status(500).json({ error: 'Error adding to search history.' });
+    }
+
+    const { result, error } = await usersServices.getUserById(searchHistoryItem.userId);
+
+    if (error) {
+      console.error('Error fetching user data:', error);
+      return res.status(500).json({ error: 'An error occurred while fetching user data.' });
+    }
+
+    if (!result) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json({
+      userId: result.id,
+      username: result.username,
+      plans: result.plans,
+      history: result.history,
+    });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    res.status(500).json({ error: 'An unexpected error occurred.' });
   }
 });
 
