@@ -35,7 +35,7 @@ steps:
     inputs:
       azureSubscription: '$(azureSubscription)'
       appName: '$(functionName)'
-      appType: 'node'
+      appType: 'webApp'
       package: '$(Build.ArtifactStagingDirectory)/$(functionName).zip'
       environmentName: '$(environmentName)'
     displayName: 'Deploy to Azure Web App'
