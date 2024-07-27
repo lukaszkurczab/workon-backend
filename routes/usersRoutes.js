@@ -313,7 +313,7 @@ router.post('/search-user/:userId', authenticateToken, async (req, res) => {
     const searchHistoryItem = req.body;
 
     if (!userId || !searchHistoryItem || !searchHistoryItem.userId) {
-      return res.status(400).json({ error: 'Invalid request data. userId and searchHistoryItem are required.' });
+      return res.status(400).json({ error: 'Invalid request data' });
     }
 
     const addHistoryResponse = await usersServices.addSearchHistoryItemToUser(userId, searchHistoryItem);
