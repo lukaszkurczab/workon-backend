@@ -20,6 +20,13 @@ const options = {
   apis: ['./routes/*.js'],
 };
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  message: 'Too many requests. Try again later.',
+  headers: true,
+});
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
@@ -28,6 +35,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(limiter);
 
 app.use('/plans', plansRouter);
 app.use('/users', usersRouter);
