@@ -1,18 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const authenticateToken = require('../middlewares/authenticateToken');
 const plansServices = require('../services/plansServices');
 const handleServiceResponse = require('../utils/handleServiceResponse');
 
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const serviceResponse = await plansServices.queryPlans();
-    handleServiceResponse(res, serviceResponse);
+    handleServiceResponse(res, serviceResponse.result);
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { newPlan, userId } = req.body;
     const serviceResponse = await plansServices.addPlan(newPlan, userId);
@@ -22,17 +23,18 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
+    const { id } = req.params;
     const { updatedPlan } = req.body;
-    const serviceResponse = await plansServices.updatePlan(updatedPlan);
+    const serviceResponse = await plansServices.updatePlan(id, updatedPlan);
     handleServiceResponse(res, serviceResponse);
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const serviceResponse = await plansServices.deletePlan(id);

@@ -9,47 +9,52 @@ const queryPlans = async () => {
   const operation = async () => {
     const container = await getPlansContainer();
     const { resources } = await container.items.readAll().fetchAll();
-    return resources;
+    return { result: resources, error: null };
   };
   return safelyPerformDatabaseOperation(operation);
 };
 
 const addPlan = async (newPlan, userId) => {
   const isValid = isPlanValid(newPlan);
-  console.log(isValid);
-  if (isValid === true) {
-    const operation = async () => {
-      const container = await getPlansContainer();
-      const id = uuidv4();
-      const planToAdd = { ...newPlan, id, authorId: userId };
-      const { resource: createdPlan } = await container.items.create(planToAdd);
-      return createdPlan;
-    };
-    return safelyPerformDatabaseOperation(operation);
-  } else {
-    throw new Error(isValid);
+
+  if (isValid !== true) {
+    return { result: null, error: new Error(isValid) };
   }
+
+  const operation = async () => {
+    const container = await getPlansContainer();
+    const id = uuidv4();
+    const planToAdd = { ...newPlan, id, authorId: userId };
+    const { resource: createdPlan } = await container.items.create(planToAdd);
+    return { result: createdPlan, error: null };
+  };
+
+  return safelyPerformDatabaseOperation(operation);
 };
 
 const updatePlan = async updatedPlan => {
   const isValid = isPlanValid(updatedPlan);
-  if (isValid === true) {
-    const operation = async () => {
-      const container = await getPlansContainer();
-      const { resource: replacedPlan } = await container.item(updatedPlan.id).replace(updatedPlan);
-      return replacedPlan;
-    };
-    return safelyPerformDatabaseOperation(operation);
-  } else {
-    throw new Error(isValid);
+
+  if (isValid !== true) {
+    return { result: null, error: new Error(isValid) };
   }
+
+  const operation = async () => {
+    const container = await getPlansContainer();
+    const { resource: replacedPlan } = await container.item(updatedPlan.id).replace(updatedPlan);
+    return { result: replacedPlan, error: null };
+  };
+
+  return safelyPerformDatabaseOperation(operation);
 };
 
 const deletePlan = async planId => {
   const operation = async () => {
     const container = await getPlansContainer();
     await container.item(planId, planId).delete();
+    return { result: `Plan with id ${planId} deleted successfully`, error: null };
   };
+
   return safelyPerformDatabaseOperation(operation);
 };
 

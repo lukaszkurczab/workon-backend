@@ -3,6 +3,7 @@ const createError = require('http-errors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const rateLimit = require('express-rate-limit');
 
 const plansRouter = require('./routes/plansRoutes');
 const usersRouter = require('./routes/usersRoutes');
