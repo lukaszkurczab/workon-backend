@@ -48,6 +48,7 @@ const addUser = async (username, email, hashedPassword) => {
       bio: '',
       email,
       password: hashedPassword,
+      defaultHistoryPublicType: 'private',
       plans: [],
       history: [],
       createdAt: new Date(),
