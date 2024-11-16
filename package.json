@@ -7,6 +7,9 @@
     "dev": "nodemon ./bin/www",
     "build": "echo 'nothing to build'"
   },
+  "engines": {
+    "node": "18.20.3"
+  },
   "dependencies": {
     "@azure/cosmos": "^4.0.0",
     "aws-sdk": "^2.1602.0",
