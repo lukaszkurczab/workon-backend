@@ -18,8 +18,6 @@ const limiter = rateLimit({
   headers: true,
 });
 
-console.log(process.env.COSMOS_KEY);
-
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.set('trust proxy', 1);
