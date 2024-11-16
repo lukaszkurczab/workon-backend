@@ -10,17 +10,6 @@ const usersRouter = require('./routes/usersRoutes');
 
 const app = express();
 
-const options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'WorkOn API',
-      version: '1.0.0',
-    },
-  },
-  apis: ['./routes/*.js'],
-};
-
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
@@ -42,20 +31,15 @@ app.use(limiter);
 app.use('/plans', plansRouter);
 app.use('/users', usersRouter);
 
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
-app.use(function (err, req, res, next) {
+app.use((err, req, res, next) => {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   res.status(err.status || 500).render('error', { error: err });
-});
-
-const PORT = 4000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;
