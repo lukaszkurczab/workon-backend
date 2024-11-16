@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const rateLimit = require('express-rate-limit');
+require('dotenv').config();
 
 const plansRouter = require('./routes/plansRoutes');
 const usersRouter = require('./routes/usersRoutes');
@@ -16,6 +17,8 @@ const limiter = rateLimit({
   message: 'Too many requests. Try again later.',
   headers: true,
 });
+
+console.log(process.env.COSMOS_KEY);
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
