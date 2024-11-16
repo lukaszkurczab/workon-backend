@@ -26,12 +26,6 @@ function normalizePort(val) {
 
   return false;
 }
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received: shutting down gracefully');
-  server.close(() => {
-    console.log('Process terminated!');
-  });
-});
 
 function onError(error) {
   if (error.syscall !== 'listen') {
