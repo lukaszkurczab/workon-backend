@@ -102,23 +102,22 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    res.json({ email, password });
-    // const serviceResponse = await usersServices.getUserByEmail(email);
-    // if (serviceResponse.error) {
-    //   handleServiceResponse(res, serviceResponse);
-    //   return;
-    // }
+    const serviceResponse = await usersServices.getUserByEmail(email);
+    if (serviceResponse.error) {
+      handleServiceResponse(res, serviceResponse);
+      return;
+    }
 
-    // const user = serviceResponse.result;
-    // if (user && (await bcrypt.compare(password, user.password))) {
-    //   const accessToken = generateAccessToken(user);
-    //   const refreshToken = generateRefreshToken(user);
+    const user = serviceResponse.result;
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const accessToken = generateAccessToken(user);
+      const refreshToken = generateRefreshToken(user);
 
-    //   await usersServices.saveRefreshToken(user.id, refreshToken);
-    //   res.json({ accessToken, refreshToken });
-    // } else {
-    //   res.status(401).json({ error: 'Unauthorized' });
-    // }
+      await usersServices.saveRefreshToken(user.id, refreshToken);
+      res.json({ accessToken, refreshToken });
+    } else {
+      res.status(401).json({ error: 'Unauthorized' });
+    }
   } catch (error) {
     handleServiceResponse(res, { result: null, error });
   }
