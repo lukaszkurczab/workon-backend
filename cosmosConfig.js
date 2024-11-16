@@ -7,7 +7,7 @@ const agent = new https.Agent({
 });
 
 const cosmosConfig = {
-  endpoint: 'https://workon-cosmosdb.documents.azure.com:443/',
+  endpoint: 'https://workon-db.documents.azure.com:443/',
   key: process.env.COSMOS_KEY,
   agent: agent,
   database: { id: 'WorkOn' },
